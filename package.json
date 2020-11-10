@@ -1,0 +1,35 @@
+{
+  "name": "phonebook-server",
+  "version": "1.0.0",
+  "description": "Phonebook Server (Fullstack Open Part3)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jalasem/phonebook-server.git"
+  },
+  "keywords": [
+    "Fullstack",
+    "Open",
+    "Express",
+    "Node",
+    "JS",
+    "Server",
+    "API"
+  ],
+  "author": "Abdulsamii Ajala <kgasta@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jalasem/phonebook-server/issues"
+  },
+  "homepage": "https://github.com/jalasem/phonebook-server#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.6"
+  }
+}
