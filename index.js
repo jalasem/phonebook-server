@@ -2,6 +2,9 @@ const { request } = require("express");
 const express = require("express");
 const morgan = require('morgan')
 const cors = require('cors')
+
+require('dotenv').config()
+
 const app = express();
 
 morgan.token('body', (req, res) => JSON.stringify(req.body))
@@ -116,5 +119,5 @@ app.get("/api/info", (req, res) => {
   <p>${new Date().toDateString()}</p>`);
 });
 
-const PORT = 3001;
+const PORT = process.env.PORT;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
