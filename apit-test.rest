@@ -1,0 +1,29 @@
+@host = http://localhost:3001/api
+
+GET {{host}}/info
+
+###
+GET {{host}}/persons
+
+###
+GET {{host}}/persons/1
+
+###
+DELETE {{host}}/persons/3
+
+###
+POST {{host}}/persons
+Content-Type: application/json
+
+{
+  "name": "Abdulsamii Ajala",
+  "number": "08148432651"
+}
+
+###
+PATCH {{host}}/persons/5
+Content-Type: application/json
+
+{
+  "number": "08168861541"
+}
