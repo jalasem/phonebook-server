@@ -6,10 +6,10 @@ GET {{host}}/info
 GET {{host}}/persons
 
 ###
-GET {{host}}/persons/1
+GET {{host}}/persons/5fab92babd5010657c049e71
 
 ###
-DELETE {{host}}/persons/3
+DELETE {{host}}/persons/5fab922fbd5010657c049e6f
 
 ###
 POST {{host}}/persons
@@ -21,9 +21,27 @@ Content-Type: application/json
 }
 
 ###
-PATCH {{host}}/persons/5
+PATCH {{host}}/persons/5fab8f12a34ad164be7eb1b8
 Content-Type: application/json
 
 {
   "number": "08168861541"
+}
+
+###
+POST {{host}}/persons
+Content-Type: application/json
+
+{
+  "name": "Kasali Meko",
+  "number": "08031234567"
+}
+
+###
+POST {{host}}/persons
+Content-Type: application/json
+
+{
+  "name": "Hanson Blue",
+  "number": "080312342739"
 }

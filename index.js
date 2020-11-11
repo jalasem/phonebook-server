@@ -1,59 +1,64 @@
 const { request } = require("express");
 const express = require("express");
-const morgan = require('morgan')
-const cors = require('cors')
+const morgan = require("morgan");
+const cors = require("cors");
+const mongoose = require("mongoose");
+const { dbURL, port } = require("./utils/config");
+const { Person } = require("./models");
 
-require('dotenv').config()
+require("dotenv").config();
 
 const app = express();
 
-morgan.token('body', (req, res) => JSON.stringify(req.body))
+mongoose.connect(dbURL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useFindAndModify: false,
+  useCreateIndex: true,
+});
+const db = mongoose.connection
+
+db.on('error', err => console.error(err))
+db.once('open', () => console.log('DB Connected 🚀'))
+
+morgan.token("body", (req, res) => JSON.stringify(req.body));
 
 app.use(express.json());
-app.use(cors())
-app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
+app.use(cors());
+app.use(
+  morgan(":method :url :status :res[content-length] - :response-time ms :body")
+);
 
-app.use(express.static('build'))
+app.use(express.static("build"));
 
-let persons = [
-  {
-    id: 1,
-    name: "Arto Hellas",
-    number: "040-123456",
-  },
-  {
-    id: 2,
-    name: "Ada Lovelace",
-    number: "39-44-53235323",
-  },
-  {
-    id: 3,
-    name: "Dan Abrmov",
-    number: "12-43-234345",
-  },
-  {
-    id: 4,
-    name: "Mary Poppendick",
-    number: "39-23-6423122",
-  },
-];
+app.get("/api/persons", async (req, res) => {
+  try {
+    const persons = await Person.find()
 
-app.get("/api/persons", (req, res) => {
-  res.json(persons);
+    res.json(persons)
+  } catch (err) {
+    console.error({ err });
+    res.status(500).send("Error occured");
+  }
 });
 
-app.get("/api/persons/:id", (req, res) => {
-  const { id: personId } = req.params;
-  const person = persons.find((p) => p.id === Number(personId));
-  if (!person)
-    return res
-      .status(404)
-      .send({ error: `person with id: "${personId}" not found` });
+app.get("/api/persons/:id", async (req, res) => {
+  const { id } = req.params
+  try {
+    const person = await Person.findById(id)
+    if (!person)
+        return res
+          .status(404)
+          .send({ error: `person with id: "${id}" not found` });
 
-  res.json(person);
+    res.json(person);
+  } catch (err) {
+    console.error({ err });
+    res.status(500).send("Error occured");
+  }
 });
 
-app.post("/api/persons", (req, res) => {
+app.post("/api/persons", async (req, res) => {
   const { number, name } = req.body;
   if (!name || typeof name !== "string") {
     return res.status(400).json({ error: '"name" is required' });
@@ -63,63 +68,70 @@ app.post("/api/persons", (req, res) => {
       error: '"number" is required',
     });
   }
-  if (
-    persons.find((person) => person.name.toLowerCase() === name.toLowerCase())
-  ) {
-    return res.status(409).json({
-      error: '"name" must be unique',
-    });
+
+  try {
+    const person = await Person.findOne({ name })
+    if (person)
+        return res.status(409).json({
+          error: '"name" must be unique',
+        });
+
+    const newPerson = await new Person({
+      name,
+      number,
+    }).save()
+
+    res.status(201).json(newPerson)
+  } catch (err) {
+    console.error({ err });
+    res.status(500).send("Error occured");
   }
-
-  const newPerson = {
-    name,
-    number,
-    id: Math.max(...persons.map((p) => p.id)) + 1,
-  };
-  persons = persons.concat(newPerson);
-  res.status(201).json(newPerson);
 });
 
-app.delete("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-
-  const person = persons.find((p) => p.id === Number(id));
-  if (!person)
-    return res.status(404).json({
-      error: `person with id: "${personId}" has been removed or does not exist`,
-    });
-
-  persons = persons.filter((person) => person.id !== id);
-  res.status(204).end();
+app.delete("/api/persons/:id", async (req, res) => {
+  try {
+    await Person.findOneAndRemove(req.params.id)
+    res.status(204).end();
+  } catch (err) {
+    console.error({ err });
+    res.status(500).send("Error occured");
+  }
 });
 
-app.patch("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const person = persons.find((p) => p.id === Number(id));
-  if (!person)
-    return res.status(404).json({
-      error: `person with id: "${id}" has been removed or does not exist`,
-    });
+app.patch("/api/persons/:id", async (req, res) => {
+  const { id } = req.params
+  try {
+    let person = await Person.findById(id);
+    if (!person)
+      return res.status(404).json({
+        error: `person with id: "${id}" has been removed or does not exist`,
+      });
 
-  const { name, number } = req.body;
-  if (!name && !number)
-    return res.status(400).json({ error: '"name" or "number" is required' });
+    const { name, number } = req.body;
+    if (!name && !number)
+      return res.status(400).json({ error: '"name" or "number" is required' });
 
-  if (name) person.name = name;
-  if (number) person.number = number;
+    if (name) person.name = name;
+    if (number) person.number = number;
 
-  persons = persons.map((p) => {
-    if (p.id === id) p = person;
-    return p;
-  });
-
-  res.json(person);
+    person = await person.save();
+    res.json(person);
+  } catch (err) {
+    console.error({ err });
+    res.status(500).send("Error occured");
+  }
 });
 
-app.get("/api/info", (req, res) => {
-  res.send(`<p>Phonebook has info for ${persons.length} people</p>
-  <p>${new Date().toDateString()}</p>`);
+app.get("/api/info", async (req, res) => {
+  try {
+    const personCount = await Person.countDocuments();
+
+    res.send(`<p>Phonebook has info for ${personCount} people</p>
+<p>${new Date().toDateString()}</p>`);
+  } catch (err) {
+    console.error({ err });
+    res.status(500).send("Error occured");
+  }
 });
 
-const PORT = process.env.PORT;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(port, () => console.log(`Server running on port ${port}`));
