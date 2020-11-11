@@ -46,7 +46,7 @@ const note = new Person({
   number
 })
 
-note.save().then(result => {
+note.save().then(() => {
   console.log(`added ${name} number ${number} to phonebook`)
   mongoose.connection.close()
 })

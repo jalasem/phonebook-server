@@ -1,4 +1,3 @@
-const { request } = require("express");
 const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
@@ -21,7 +20,7 @@ const db = mongoose.connection
 db.on('error', err => console.error(err))
 db.once('open', () => console.log('DB Connected 🚀'))
 
-morgan.token("body", (req, res) => JSON.stringify(req.body));
+morgan.token("body", (req) => JSON.stringify(req.body));
 
 app.use(express.json());
 app.use(cors());
